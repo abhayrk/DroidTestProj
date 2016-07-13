@@ -50,68 +50,21 @@ public class ForecastFragment extends Fragment {
         forecastView.setAdapter(forecastAdapter);
 
         String urlstring="http://api.openweathermap.org/data/2.5/forecast/daily?id=1263780&appid=57fcb1d19ea118227a096d1958d6d84a";
-
-        new FetchWeatherData().execute(urlstring);
-        //Adding code for fetching from WeathermapAPI.org
-        HttpURLConnection urlConnection = null;
-        BufferedReader reader = null;
-
-        String jsonresp = null;
-
-        try
-        {
-            //setting url and establishing connection
-            URL url = new URL("http://api.openweathermap.org/data/2.5/forecast/daily?id=1263780&appid=57fcb1d19ea118227a096d1958d6d84a");
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setRequestMethod("GET");
-            urlConnection.connect();
-
-            //reading response into string
-            InputStream inputStream = urlConnection.getInputStream();
-            StringBuffer buffer = new StringBuffer();
-            if(inputStream == null)
-            {
-                jsonresp = null;
-            }
-            reader = new BufferedReader(new InputStreamReader(inputStream));
-            String line;
-
-            while((line = reader.readLine()) != null)
-            {
-                buffer.append(line + "\n");
-            }
-
-            if (buffer.length() == 0)
-            {
-                jsonresp = null;
-            }
-
-            jsonresp = buffer.toString();
-        }
-        catch(IOException e)
-        {
-            Log.e("MainActivityFragment","Nothing to return from Weathermap!!" + e);
-            jsonresp = null;
-        }
-        finally {
-            if(urlConnection != null ){
-                urlConnection.disconnect();
-            }
-            if(reader != null){
-                try{
-                    reader.close();
-                }catch(IOException e){
-                    Log.e("PlaceholderFragment","Reader not closing!!" + e);
-                }
-            }
+        try {
+            new FetchWeatherData().execute(urlstring);
+        }catch(Exception e){
+            Log.e("FetchDataException","The exception is " + e);
         }
 
         return rootview;
     }
 
-    public class FetchWeatherData extends AsyncTask<String, void, String>{
+    public class FetchWeatherData extends AsyncTask<String, Void, Void>{
+
+        private final String LOG_TAG = FetchWeatherData.class.getSimpleName();
         @Override
-        protected String doInBackground(String... urls) {
+        protected Void doInBackground(String... urls) {
+            Log.i(LOG_TAG,"String url is" + urls[0]);
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -120,21 +73,24 @@ public class ForecastFragment extends Fragment {
             try
             {
                 //setting url and establishing connection
+                Log.i(LOG_TAG,"Forming URL Connection and connecting");
                 URL url = new URL(urls[0]);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
                 urlConnection.connect();
 
+                Log.i(LOG_TAG, "Reading input stream from connection");
                 //reading response into string
                 InputStream inputStream = urlConnection.getInputStream();
                 StringBuffer buffer = new StringBuffer();
                 if(inputStream == null)
                 {
-                    jsonresp = null;
+                    return null;
                 }
                 reader = new BufferedReader(new InputStreamReader(inputStream));
                 String line;
 
+                Log.i(LOG_TAG,"Reading from InputStream --> InputStreamReader --> BufferReader --> StringBuffer");
                 while((line = reader.readLine()) != null)
                 {
                     buffer.append(line + "\n");
@@ -142,7 +98,7 @@ public class ForecastFragment extends Fragment {
 
                 if (buffer.length() == 0)
                 {
-                    jsonresp = null;
+                    return null;
                 }
 
                 jsonresp = buffer.toString();
@@ -150,7 +106,7 @@ public class ForecastFragment extends Fragment {
             catch(IOException e)
             {
                 Log.e("MainActivityFragment","Nothing to return from Weathermap!!" + e);
-                jsonresp = null;
+                return null;
             }
             finally {
                 if(urlConnection != null ){
@@ -165,6 +121,11 @@ public class ForecastFragment extends Fragment {
                 }
             }
             return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            Log.i("FetchWeatherData","Executing on pre-execute");
         }
     }
 }
